@@ -1,0 +1,28 @@
+[app]
+  name = "拼图"
+  debug = true
+  env = "local"
+  gin_mode = 'debug'
+  host = '127.0.0.1'
+  port = '8080'
+
+[database]
+  driver = "mysql"
+  host = "127.0.0.1"
+  port = "3306"
+  database = "database"
+  username = "username"
+  password = "password"
+  charset = "utf8mb4"
+
+[log]
+  level = "error"
+  filename = "tmp/logs/logs.log"
+  max_size = 32
+  max_backups = 32
+  max_age = 16
+  compress = false
+
+[jwt]
+  secret = "secret"
+  expires = 86400

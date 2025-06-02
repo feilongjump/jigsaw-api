@@ -1,0 +1,11 @@
+# Project files
+tmp
+
+.jigsaw*
+!.jigsaw.example.toml
+.env*
+!.env.example
+
+# Ignore IDE files
+.idea
+.vscode
