@@ -1,6 +1,8 @@
 package repo_impl
 
 import (
+	"errors"
+
 	"github.com/feilongjump/jigsaw-api/domain/entity"
 	"github.com/feilongjump/jigsaw-api/domain/repo"
 	"github.com/feilongjump/jigsaw-api/infrastructure/db"
@@ -31,7 +33,7 @@ func (r *noteRepositoryImpl) GetNote(id uint64) (*entity.Note, error) {
 	err := r.db.First(&note, id).Error
 	if err != nil {
 		// 当数据不存在时，将返回自定义的数据不存在错误
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err_code.NoteNotFound
 		}
 		return nil, err
