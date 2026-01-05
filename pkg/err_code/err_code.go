@@ -22,11 +22,11 @@ var (
 	// 用户模块
 
 	// Note 模块
-	NoteCreateFailed = ErrCode{Code: 2001, Msg: "创建笔记失败"}
-	NoteUpdateFailed = ErrCode{Code: 2002, Msg: "更新笔记失败"}
-	NoteDeleteFailed = ErrCode{Code: 2003, Msg: "删除笔记失败"}
-	NoteNotFound     = ErrCode{Code: 2004, Msg: "笔记不存在"}
-	NoteGetFailed    = ErrCode{Code: 2005, Msg: "查询笔记失败"}
+	NoteCreateFailed = ErrCode{Code: 2501, Msg: "创建笔记失败"}
+	NoteUpdateFailed = ErrCode{Code: 2502, Msg: "更新笔记失败"}
+	NoteDeleteFailed = ErrCode{Code: 2503, Msg: "删除笔记失败"}
+	NoteNotFound     = ErrCode{Code: 2504, Msg: "笔记不存在"}
+	NoteGetFailed    = ErrCode{Code: 2505, Msg: "查询笔记失败"}
 )
 
 // 实现 error 接口
