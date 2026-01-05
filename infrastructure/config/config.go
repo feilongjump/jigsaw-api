@@ -10,6 +10,7 @@ type Config struct {
 	App      AppConfig      `mapstructure:"app"`
 	Logger   LoggerConfig   `mapstructure:"logger"`
 	Database DatabaseConfig `mapstructure:"database"`
+	JWT      JWTConfig      `mapstructure:"jwt"`
 }
 
 type AppConfig struct {
@@ -43,6 +44,11 @@ type DatabaseConfig struct {
 	Username string `mapstructure:"username"`
 	Password string `mapstructure:"password"`
 	Charset  string `mapstructure:"charset"`
+}
+
+type JWTConfig struct {
+	Secret string `mapstructure:"secret"`
+	TTL    int    `mapstructure:"ttl"` // Token 有效期（秒）
 }
 
 var Global Config

@@ -17,9 +17,16 @@ var (
 	ValidationFailed   = ErrCode{Code: 1003, Msg: "参数验证失败"}
 	NotFound           = ErrCode{Code: 1004, Msg: "数据不存在"}
 	MalformedRequest   = ErrCode{Code: 1005, Msg: "请求格式错误"}
+	Unauthorized       = ErrCode{Code: 1007, Msg: "未授权"}
 
 	// 业务级错误 2000 - 9999
 	// 用户模块
+	UserRegisterFailed       = ErrCode{Code: 2001, Msg: "注册失败"}
+	UserNotFound             = ErrCode{Code: 2002, Msg: "用户不存在"}
+	UserAlreadyExists        = ErrCode{Code: 2003, Msg: "用户已存在"}
+	UserPasswordError        = ErrCode{Code: 2004, Msg: "密码错误"}
+	UserUpdatePasswordFailed = ErrCode{Code: 2005, Msg: "修改密码失败"}
+	UserOldPasswordError     = ErrCode{Code: 2006, Msg: "旧密码错误"}
 
 	// Note 模块
 	NoteCreateFailed = ErrCode{Code: 2501, Msg: "创建笔记失败"}

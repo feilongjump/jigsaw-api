@@ -9,6 +9,7 @@ func AutoMigrate() {
 	logger.Info("开始执行数据库自动迁移...")
 
 	err := globalDB.AutoMigrate(
+		&entity.User{},
 		&entity.Note{},
 	)
 	if err != nil {

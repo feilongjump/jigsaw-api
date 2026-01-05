@@ -21,3 +21,7 @@
   username = "username"
   password = "password"
   charset = "utf8mb4"
+
+[jwt]
+  secret = "your_secret_key"
+  ttl = 86400 # 24 小时
