@@ -1,0 +1,38 @@
+services:
+  ### MySQL #########
+  mysql:
+    build:
+      context: ./dockerfiles/mysql
+      dockerfile: Dockerfile
+      args:
+        TZ: '${TZ}'
+    # 启用init进程（关键：解决僵尸进程）
+    init: true
+    ports:
+      - '${MYSQL_PORT:-3306}:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      # 跳过时区信息初始化（避免启动警告）
+      MYSQL_INITDB_SKIP_TZINFO: "1"
+      # 强制字符集
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    volumes:
+      - ${HOST_DATABASE_PATH}/mysql:/var/lib/mysql
+    # 重启策略：除非手动停止，否则总是重启
+    restart: unless-stopped
+    # 资源限制（可选：避免占用过多主机资源）
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h127.0.0.1", "-uroot", "-p$$MYSQL_ROOT_PASSWORD", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

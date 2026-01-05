@@ -1,0 +1,12 @@
+# 强制所有文本文件使用 LF
+* text eol=lf
+
+# 排除二进制文件（避免误处理）
+*.png binary
+*.jpg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.exe binary
+*.woff binary
+*.woff2 binary

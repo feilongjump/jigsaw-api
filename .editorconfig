@@ -1,0 +1,31 @@
+# 根配置文件，所有子目录生效
+root = true
+
+# 所有文件的基础规则
+[*]
+# 强制换行符为 LF（核心需求）
+end_of_line = lf
+# 编码统一为 UTF-8（Go 项目标准）
+charset = utf-8
+# 保存时自动删除行尾空格
+trim_trailing_whitespace = true
+# 文件末尾强制保留一个空行
+insert_final_newline = true
+
+# Go 源码文件的专属规则（符合 Go 官方规范）
+[*.go]
+# Go 官方推荐使用 tab 缩进（禁止空格）
+indent_style = tab
+# tab 宽度为 4（和 GoLand/VS Code 默认一致）
+indent_size = 4
+# 禁止混用 tab 和空格（Go 规范硬性要求）
+tab_width = 4
+
+# 其他文本文件的补充规则（按需调整）
+[*.{md,yml,yaml,json,sh,toml}]
+indent_style = space
+indent_size = 2
+
+# 二进制文件（无需处理）
+[*.{png,jpg,zip,tar.gz}]
+trim_trailing_whitespace = false

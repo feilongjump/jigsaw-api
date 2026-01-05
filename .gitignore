@@ -1,0 +1,10 @@
+# 文件夹
+tmp/
+
+# 文件
+.jigsaw*
+!.jigsaw.example.toml
+.env*
+!.env.example
+
+

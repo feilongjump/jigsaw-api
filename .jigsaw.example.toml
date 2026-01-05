@@ -1,0 +1,23 @@
+[app]
+  name = "Jigsaw API"
+  port = 8080
+  env = "dev"
+  time_zone = "Asia/Shanghai"
+  locale = "zh-CN"
+
+[logger]
+  level = "debug"
+	file_path = "tmp/logs"
+	max_size = 8
+	max_backups = 18
+	max_age = 8
+	compress = false
+
+[database]
+	driver = "mysql"
+	host = "127.0.0.1"
+  port = "3306"
+  database = "database"
+  username = "username"
+  password = "password"
+  charset = "utf8mb4"
