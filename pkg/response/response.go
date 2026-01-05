@@ -51,3 +51,11 @@ func ValidateFail(c *gin.Context, errors any) {
 		Errors: errors,
 	})
 }
+
+// FailWithDetail 自定义失败响应信息
+func FailWithDetail(c *gin.Context, err err_code.ErrCode, msg string) {
+	c.JSON(http.StatusOK, Response{
+		Code: err.Code,
+		Msg:  msg,
+	})
+}
