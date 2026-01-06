@@ -26,7 +26,8 @@ func (n *NoteHandler) Create(c *gin.Context) {
 		return
 	}
 
-	noteResp, err := n.noteService.Create(&req)
+	userID := c.GetUint64("user_id")
+	noteResp, err := n.noteService.Create(&req, userID)
 	if err != nil {
 		response.Fail(c, err_code.NoteCreateFailed)
 		return
@@ -42,7 +43,8 @@ func (n *NoteHandler) Show(c *gin.Context) {
 		return
 	}
 
-	noteResp, err := n.noteService.GetNote(req.ID)
+	userID := c.GetUint64("user_id")
+	noteResp, err := n.noteService.GetNote(req.ID, userID)
 	if err != nil {
 		response.Fail(c, err)
 		return
@@ -58,7 +60,8 @@ func (n *NoteHandler) Index(c *gin.Context) {
 		return
 	}
 
-	notesResp, err := n.noteService.FindNotes(req.Page, req.Size)
+	userID := c.GetUint64("user_id")
+	notesResp, err := n.noteService.FindNotes(req.Page, req.Size, userID)
 	if err != nil {
 		response.Fail(c, err_code.NoteGetFailed)
 		return
@@ -79,13 +82,14 @@ func (n *NoteHandler) Update(c *gin.Context) {
 		return
 	}
 
-	if err := n.noteService.Update(reqURI.ID, &req); err != nil {
+	userID := c.GetUint64("user_id")
+	if err := n.noteService.Update(reqURI.ID, userID, &req); err != nil {
 		response.Fail(c, err_code.NoteUpdateFailed)
 		return
 	}
 
 	// 返回更新后的 Note
-	updatedNote, err := n.noteService.GetNote(reqURI.ID)
+	updatedNote, err := n.noteService.GetNote(reqURI.ID, userID)
 	if err != nil {
 		response.Fail(c, err)
 		return
@@ -101,7 +105,8 @@ func (n *NoteHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	if err := n.noteService.Delete(req.ID); err != nil {
+	userID := c.GetUint64("user_id")
+	if err := n.noteService.Delete(req.ID, userID); err != nil {
 		response.Fail(c, err_code.NoteDeleteFailed)
 		return
 	}

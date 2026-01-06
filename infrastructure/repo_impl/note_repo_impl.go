@@ -28,9 +28,12 @@ func (r *noteRepositoryImpl) Create(note *entity.Note) error {
 }
 
 // GetNote 根据 ID 查询 Note
-func (r *noteRepositoryImpl) GetNote(id uint64) (*entity.Note, error) {
+func (r *noteRepositoryImpl) GetNote(id, userID uint64) (*entity.Note, error) {
 	var note entity.Note
-	err := r.db.First(&note, id).Error
+	err := r.db.
+		Where("user_id", userID).
+		First(&note, id).
+		Error
 	if err != nil {
 		// 当数据不存在时，将返回自定义的数据不存在错误
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -42,14 +45,19 @@ func (r *noteRepositoryImpl) GetNote(id uint64) (*entity.Note, error) {
 }
 
 // FindNotes 查询 Note 列表
-func (r *noteRepositoryImpl) FindNotes(page, size int) ([]*entity.Note, int64, error) {
+func (r *noteRepositoryImpl) FindNotes(page, size int, userID uint64) ([]*entity.Note, int64, error) {
 	var notes []*entity.Note
 	var total int64
-	err := r.db.Model(&entity.Note{}).Count(&total).Error
+	err := r.db.
+		Where("user_id", userID).
+		Model(&entity.Note{}).
+		Count(&total).
+		Error
 	if err != nil {
 		return nil, 0, err
 	}
 	err = r.db.
+		Where("user_id", userID).
 		Offset((page - 1) * size).
 		Limit(size).
 		Order("created_at desc").
@@ -62,8 +70,9 @@ func (r *noteRepositoryImpl) FindNotes(page, size int) ([]*entity.Note, int64, e
 }
 
 // Update 更新 Note
-func (r *noteRepositoryImpl) Update(id uint64, note *entity.Note) error {
+func (r *noteRepositoryImpl) Update(id, userID uint64, note *entity.Note) error {
 	return r.db.
+		Where("user_id", userID).
 		Model(&entity.Note{
 			ID: id,
 		}).
@@ -72,10 +81,12 @@ func (r *noteRepositoryImpl) Update(id uint64, note *entity.Note) error {
 }
 
 // Delete 删除 Note
-func (r *noteRepositoryImpl) Delete(id uint64) error {
-	return r.db.
+func (r *noteRepositoryImpl) Delete(id, userID uint64) (error, int64) {
+	result := r.db.
+		Where("user_id", userID).
 		Delete(&entity.Note{
 			ID: id,
-		}).
-		Error
+		})
+
+	return result.Error, result.RowsAffected
 }

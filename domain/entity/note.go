@@ -7,7 +7,8 @@ import (
 
 // Note 实体（领域模型）
 type Note struct {
-	ID uint64 `gorm:"primarykey" json:"id"`
+	ID     uint64 `gorm:"primarykey" json:"id"`
+	UserID uint64 `gorm:"index;not null" json:"user_id"`
 
 	Content string `gorm:"type:longtext"`
 

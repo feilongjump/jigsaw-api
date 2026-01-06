@@ -4,6 +4,7 @@ import (
 	"github.com/feilongjump/jigsaw-api/application/note/dto"
 	"github.com/feilongjump/jigsaw-api/domain/entity"
 	"github.com/feilongjump/jigsaw-api/domain/repo"
+	"github.com/feilongjump/jigsaw-api/pkg/err_code"
 )
 
 // Service Note 应用服务
@@ -19,9 +20,10 @@ func NewNoteService(noteRepo repo.NoteRepository) *Service {
 }
 
 // Create 创建 Note
-func (s *Service) Create(req *dto.CreateNoteRequest) (*dto.NoteResponse, error) {
+func (s *Service) Create(req *dto.CreateNoteRequest, userID uint64) (*dto.NoteResponse, error) {
 	// 转换为领域实体
 	note := &entity.Note{
+		UserID:  userID,
 		Content: req.Content,
 	}
 
@@ -38,9 +40,9 @@ func (s *Service) Create(req *dto.CreateNoteRequest) (*dto.NoteResponse, error) 
 	}, nil
 }
 
-func (s *Service) GetNote(id uint64) (*dto.NoteResponse, error) {
+func (s *Service) GetNote(id, userID uint64) (*dto.NoteResponse, error) {
 	// 调用仓储查询 Note
-	note, err := s.noteRepo.GetNote(id)
+	note, err := s.noteRepo.GetNote(id, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +55,9 @@ func (s *Service) GetNote(id uint64) (*dto.NoteResponse, error) {
 	}, nil
 }
 
-func (s *Service) FindNotes(page, size int) (*dto.NotesResponse, error) {
+func (s *Service) FindNotes(page, size int, userID uint64) (*dto.NotesResponse, error) {
 	// 调用仓储查询 Note
-	notes, total, err := s.noteRepo.FindNotes(page, size)
+	notes, total, err := s.noteRepo.FindNotes(page, size, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,21 +80,27 @@ func (s *Service) FindNotes(page, size int) (*dto.NotesResponse, error) {
 	}, nil
 }
 
-func (s *Service) Update(id uint64, req *dto.UpdateNoteRequest) error {
+func (s *Service) Update(id, userID uint64, req *dto.UpdateNoteRequest) error {
 	note := &entity.Note{
 		Content: req.Content,
 	}
 
-	if err := s.noteRepo.Update(id, note); err != nil {
+	if err := s.noteRepo.Update(id, userID, note); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *Service) Delete(id uint64) error {
-	if err := s.noteRepo.Delete(id); err != nil {
+func (s *Service) Delete(id, userID uint64) error {
+	err, row := s.noteRepo.Delete(id, userID)
+	if err != nil {
 		return err
+	}
+
+	if row == 0 {
+		// 未删除任何数据，可能是 Note 不存在
+		return err_code.NoteDeleteFailed
 	}
 
 	return nil
