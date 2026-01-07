@@ -4,6 +4,7 @@
 
 ### 项目目录
 
+```
 jigsaw-api/
 ├── api/                # 接口层（处理 HTTP 请求，参数绑定与基础验证）
 │   ├── handler/        # 请求处理器（接收请求并调用 Service 层）
@@ -37,6 +38,7 @@ jigsaw-api/
 ├── go.sum              # 依赖锁文件
 ├── main.go             # 项目入口文件
 └── README.md           # 项目说明文档
+```
 
 ### 错误码规范
 
