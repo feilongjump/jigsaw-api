@@ -32,5 +32,5 @@ func RegisterUserRouter(r *gin.Engine) {
 		userGroup.POST("/avatar", userHandler.UpdateAvatar)
 	}
 
-	r.GET("/me", userHandler.GetProfile, middleware.JWTAuth())
+	r.GET("/me", middleware.JWTAuth(), userHandler.GetProfile)
 }
