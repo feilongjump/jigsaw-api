@@ -10,6 +10,7 @@ type User struct {
 
 	Username string `gorm:"type:varchar(100);uniqueIndex;not null"`
 	Password string `gorm:"type:varchar(255);not null"`
+	Avatar   string `gorm:"type:varchar(255)" json:"avatar"`
 
 	Files []File `gorm:"polymorphic:Owner;polymorphicValue:users" json:"files"`
 

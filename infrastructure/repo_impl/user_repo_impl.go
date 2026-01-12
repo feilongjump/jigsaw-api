@@ -54,3 +54,12 @@ func (u *userRepositoryImpl) UpdatePassword(id uint64, password string) error {
 		Update("password", password).
 		Error
 }
+
+func (u *userRepositoryImpl) UpdateAvatar(id uint64, avatar string) error {
+	return u.db.
+		Model(&entity.User{
+			ID: id,
+		}).
+		Update("avatar", avatar).
+		Error
+}

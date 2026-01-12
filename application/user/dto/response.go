@@ -6,9 +6,8 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
-type UserResponse struct {
-	ID        uint64           `json:"id"`
+type MeResponse struct {
 	Username  string           `json:"username"`
+	Avatar    string           `json:"avatar"`
 	CreatedAt *carbon.DateTime `json:"created_at"`
-	UpdatedAt *carbon.DateTime `json:"updated_at"`
 }

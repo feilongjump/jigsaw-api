@@ -2,7 +2,9 @@ package user
 
 import (
 	"errors"
+	"mime/multipart"
 
+	"github.com/feilongjump/jigsaw-api/application/file"
 	"github.com/feilongjump/jigsaw-api/application/user/dto"
 	"github.com/feilongjump/jigsaw-api/domain/entity"
 	"github.com/feilongjump/jigsaw-api/domain/repo"
@@ -12,12 +14,14 @@ import (
 )
 
 type Service struct {
-	userRepo repo.UserRepository
+	userRepo    repo.UserRepository
+	fileService *file.Service
 }
 
-func NewService(userRepo repo.UserRepository) *Service {
+func NewService(userRepo repo.UserRepository, fileService *file.Service) *Service {
 	return &Service{
-		userRepo: userRepo,
+		userRepo:    userRepo,
+		fileService: fileService,
 	}
 }
 
@@ -74,7 +78,27 @@ func (s *Service) Login(req *dto.LoginRequest) (*dto.LoginResponse, error) {
 		return nil, err
 	}
 
-	return &dto.LoginResponse{Token: token}, nil
+	return &dto.LoginResponse{
+		Token: token,
+	}, nil
+}
+
+// GetProfile 获取当前用户信息
+func (s *Service) GetProfile(userID uint64) (*dto.MeResponse, error) {
+	// 1. 查找用户
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, err_code.UserNotFound
+	}
+
+	return &dto.MeResponse{
+		Username:  user.Username,
+		Avatar:    user.Avatar,
+		CreatedAt: user.CreatedAt,
+	}, nil
 }
 
 // ChangePassword 修改密码
@@ -84,19 +108,16 @@ func (s *Service) ChangePassword(userID uint64, req *dto.ChangePasswordRequest) 
 	if err != nil {
 		return err
 	}
-	if user == nil {
-		return err_code.UserNotFound
-	}
 
 	// 2. 验证旧密码
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
-		return err_code.UserPasswordError
+		return err_code.UserOldPasswordError
 	}
 
 	// 3. 加密新密码
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return err_code.UserUpdatePasswordFailed
 	}
 
 	// 4. 更新密码
@@ -105,4 +126,30 @@ func (s *Service) ChangePassword(userID uint64, req *dto.ChangePasswordRequest) 
 	}
 
 	return nil
+}
+
+// UpdateAvatar 更新用户头像
+func (s *Service) UpdateAvatar(userID uint64, fileHeader *multipart.FileHeader) (*dto.MeResponse, error) {
+	// 1. 上传文件 (OwnerType="users", OwnerID=userID)
+	fileResp, err := s.fileService.Upload(fileHeader, "users", userID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 更新用户头像字段
+	if err := s.userRepo.UpdateAvatar(userID, fileResp.Url); err != nil {
+		return nil, err
+	}
+
+	// 3. 返回更新后的用户信息
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.MeResponse{
+		Username:  user.Username,
+		Avatar:    user.Avatar,
+		CreatedAt: user.CreatedAt,
+	}, nil
 }
