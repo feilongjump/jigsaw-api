@@ -17,11 +17,11 @@ func Init() *gin.Engine {
 	RegisterFileRouter(r)
 
 	// 静态资源访问: /image/2023-10-27/xxx.jpg
-	r.Static("/image", "./tmp/image")
-	r.Static("/video", "./tmp/video")
-	r.Static("/document", "./tmp/document")
-	r.Static("/text", "./tmp/text")
-	r.Static("/other", "./tmp/other")
+	r.Static("/image", "./tmp/static/image")
+	r.Static("/video", "./tmp/static/video")
+	r.Static("/document", "./tmp/static/document")
+	r.Static("/text", "./tmp/static/text")
+	r.Static("/other", "./tmp/static/other")
 
 	return r
 }
