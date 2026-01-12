@@ -34,6 +34,12 @@ var (
 	NoteDeleteFailed = ErrCode{Code: 2503, Msg: "删除笔记失败"}
 	NoteNotFound     = ErrCode{Code: 2504, Msg: "笔记不存在"}
 	NoteGetFailed    = ErrCode{Code: 2505, Msg: "查询笔记失败"}
+
+	// File 模块
+	FileUploadFailed    = ErrCode{Code: 3001, Msg: "文件上传失败"}
+	FileDeleteForbidden = ErrCode{Code: 3002, Msg: "无权删除该文件"}
+	FileDeleteFailed    = ErrCode{Code: 3003, Msg: "删除文件失败"}
+	FileNotFound        = ErrCode{Code: 3004, Msg: "文件不存在"}
 )
 
 // 实现 error 接口

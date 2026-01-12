@@ -11,6 +11,7 @@ func AutoMigrate() {
 	err := globalDB.AutoMigrate(
 		&entity.User{},
 		&entity.Note{},
+		&entity.File{},
 	)
 	if err != nil {
 		logger.Fatal("数据库自动迁移失败: " + err.Error())

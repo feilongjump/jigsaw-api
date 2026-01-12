@@ -40,6 +40,17 @@ func BindURI(c *gin.Context, obj any) bool {
 	return false
 }
 
+// BindMultipart 绑定 Multipart Form 请求参数到结构体
+func BindMultipart(c *gin.Context, obj any) bool {
+	err := c.ShouldBind(obj)
+	if err == nil {
+		return true
+	}
+
+	handlerBindError(c, err, obj)
+	return false
+}
+
 // handlerBindError 处理绑定错误
 func handlerBindError(c *gin.Context, err error, obj any) {
 	// 翻译错误

@@ -14,6 +14,14 @@ func Init() *gin.Engine {
 
 	RegisterNoteRouter(r)
 	RegisterUserRouter(r)
+	RegisterFileRouter(r)
+
+	// 静态资源访问: /image/2023-10-27/xxx.jpg
+	r.Static("/image", "./tmp/image")
+	r.Static("/video", "./tmp/video")
+	r.Static("/document", "./tmp/document")
+	r.Static("/text", "./tmp/text")
+	r.Static("/other", "./tmp/other")
 
 	return r
 }
