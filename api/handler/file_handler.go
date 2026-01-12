@@ -43,7 +43,9 @@ func (h *FileHandler) Upload(c *gin.Context) {
 	} else {
 		// 如果不是 user 模块，owner_id 必填
 		if req.OwnerID == 0 {
-			response.Fail(c, err_code.ValidationFailed)
+			response.ValidateFail(c, map[string][]string{
+				"owner_id": {"owner_id 不能为空"},
+			})
 			return
 		}
 		ownerID = req.OwnerID
