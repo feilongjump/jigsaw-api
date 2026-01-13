@@ -8,6 +8,7 @@
 jigsaw-api/
 ├── api/                # 接口层（处理 HTTP 请求，参数绑定与基础验证）
 │   ├── handler/        # 请求处理器（接收请求并调用 Service 层）
+│   ├── middleware/     # HTTP 中间件（认证、CORS 等）
 │   └── router/         # 路由定义（注册 HTTP 路由）
 ├── application/        # 应用层（业务逻辑编排与数据传输对象 DTO）
 │   └── note/           # Note 模块应用逻辑
@@ -24,10 +25,12 @@ jigsaw-api/
 │   ├── carbon/         # 时间处理库扩展
 │   ├── err_code/       # 错误码定义
 │   ├── gin_util/       # Gin 框架工具（参数绑定辅助、解析器）
+│   ├── jwt/            # JWT Token 工具
 │   ├── logger/         # 日志工具（Zap 封装）
 │   ├── response/       # 统一响应结构处理
 │   └── validator/      # 自定义参数验证器（支持 I18n 翻译）
 ├── dockerfiles/        # Docker 容器定义
+│   ├── app/            # Go 应用容器配置
 │   └── mysql/          # MySQL 容器配置
 ├── .air.toml           # Air 热重载配置
 ├── .env.example        # Docker 环境变量模板
