@@ -10,7 +10,8 @@ import (
 
 func RegisterNoteRouter(r *gin.Engine) {
 	noteRepo := repo_impl.NewNoteRepository()
-	noteService := note.NewNoteService(noteRepo)
+	fileRepo := repo_impl.NewFileRepository()
+	noteService := note.NewNoteService(noteRepo, fileRepo)
 	noteHandler := handler.NewNoteHandler(noteService)
 
 	group := r.Group("/notes")

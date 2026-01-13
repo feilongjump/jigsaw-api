@@ -10,7 +10,8 @@ type NoteURIRequest struct {
 }
 
 type CreateNoteRequest struct {
-	Content string `json:"content" binding:"required" label:"内容"`
+	Content string   `json:"content" binding:"required" label:"内容"`
+	FileIDs []uint64 `json:"file_ids"`
 }
 
 type UpdateNoteRequest struct {

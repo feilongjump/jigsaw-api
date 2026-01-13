@@ -41,8 +41,8 @@ func (h *FileHandler) Upload(c *gin.Context) {
 	if req.OwnerType == "users" {
 		ownerID = userID
 	} else {
-		// 如果不是 user 模块，owner_id 必填
-		if req.OwnerID == 0 {
+		// 对于 notes 模块，允许 owner_id 为 0 (后续绑定)
+		if req.OwnerType != "notes" && req.OwnerID == 0 {
 			response.ValidateFail(c, map[string][]string{
 				"owner_id": {"owner_id 不能为空"},
 			})

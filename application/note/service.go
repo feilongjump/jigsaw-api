@@ -10,12 +10,14 @@ import (
 // Service Note 应用服务
 type Service struct {
 	noteRepo repo.NoteRepository
+	fileRepo repo.FileRepository
 }
 
 // NewNoteService 创建 Note 应用服务
-func NewNoteService(noteRepo repo.NoteRepository) *Service {
+func NewNoteService(noteRepo repo.NoteRepository, fileRepo repo.FileRepository) *Service {
 	return &Service{
 		noteRepo: noteRepo,
+		fileRepo: fileRepo,
 	}
 }
 
@@ -30,6 +32,17 @@ func (s *Service) Create(req *dto.CreateNoteRequest, userID uint64) (*dto.NoteRe
 	// 调用仓储进行存储
 	if err := s.noteRepo.Create(note); err != nil {
 		return nil, err
+	}
+
+	// 绑定文件 (如果有)
+	if len(req.FileIDs) > 0 {
+		if err := s.fileRepo.BindFiles(req.FileIDs, userID, "notes", note.ID); err != nil {
+			// 记录日志，但不中断流程? 或者返回错误?
+			// 这里如果绑定失败，Note 已经创建成功了。
+			// 最好是事务一致性。但 Repository 模式通常不跨 Repo 事务。
+			// 简单起见，返回错误，用户可以重试或者看到 Note 没有附件。
+			return nil, err
+		}
 	}
 
 	return &dto.NoteResponse{

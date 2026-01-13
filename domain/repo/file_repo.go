@@ -16,6 +16,9 @@ type FileRepository interface {
 	// FindFiles 根据 Owner 查找文件列表
 	FindFiles(ownerType string, ownerID uint64) ([]*entity.File, error)
 
+	// BindFiles 绑定文件到 Owner
+	BindFiles(fileIDs []uint64, userID uint64, ownerType string, ownerID uint64) error
+
 	// Delete 删除文件
 	Delete(id uint64) error
 }

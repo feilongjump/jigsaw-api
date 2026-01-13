@@ -38,9 +38,9 @@ func (s *Service) Upload(fileHeader *multipart.FileHeader, ownerType string, own
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	fileType := getFileType(ext)
 
-	// 3. 生成路径: tmp/type/date/
+	// 3. 生成路径: static/type/date/
 	dateStr := time.Now().Format("2006-01-02")
-	uploadDir := filepath.Join("tmp", string(fileType), dateStr)
+	uploadDir := filepath.Join("static", string(fileType), dateStr)
 	if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
 		return nil, err
 	}
@@ -83,14 +83,15 @@ func (s *Service) Upload(fileHeader *multipart.FileHeader, ownerType string, own
 		return nil, err
 	}
 
-	// 生成访问 URL (去掉 tmp 前缀，并确保使用 /)
+	// 生成访问 URL (去掉 static 前缀，并确保使用 /)
 	urlPath := strings.ReplaceAll(dstPath, "\\", "/")
-	urlPath = strings.TrimPrefix(urlPath, "tmp")
+	urlPath = strings.TrimPrefix(urlPath, "static")
 	if !strings.HasPrefix(urlPath, "/") {
 		urlPath = "/" + urlPath
 	}
 
 	return &dto.FileResponse{
+		ID:        fileEntity.ID,
 		Name:      fileEntity.Name,
 		Url:       urlPath,
 		Size:      fileEntity.Size,
@@ -103,9 +104,9 @@ func (s *Service) Upload(fileHeader *multipart.FileHeader, ownerType string, own
 
 // Delete 删除文件
 func (s *Service) Delete(path string, userID uint64, ownerType string, ownerID uint64) error {
-	// 1. 还原存储路径 (tmp + url path)
-	// path 来自 URL，如 "image/2023/xxx.jpg"，需要拼接 tmp 才能找到文件
-	storagePath := filepath.Join("tmp", path)
+	// 1. 还原存储路径 (static + url path)
+	// path 来自 URL，如 "/image/2023/xxx.jpg"，需要拼接 static 才能找到文件
+	storagePath := filepath.Join("static", path)
 
 	// 1. 查询文件
 	fileEntity, err := s.fileRepo.GetFileByPath(storagePath)

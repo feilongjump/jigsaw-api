@@ -46,5 +46,6 @@ func (f *File) BeforeDelete(tx *gorm.DB) (err error) {
 	// 删除磁盘上的文件
 	// 忽略文件不存在的错误
 	_ = os.Remove(f.Path)
+
 	return nil
 }
