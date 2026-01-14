@@ -21,6 +21,7 @@ func RegisterNoteRouter(r *gin.Engine) {
 		group.GET("", noteHandler.Index)
 		group.GET("/:id", noteHandler.Show)
 		group.PUT("/:id", noteHandler.Update)
+		group.PATCH("/:id/pin", noteHandler.SetPinned)
 		group.DELETE("/:id", noteHandler.Delete)
 	}
 }

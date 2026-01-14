@@ -45,28 +45,40 @@ func (r *noteRepositoryImpl) GetNote(id, userID uint64) (*entity.Note, error) {
 }
 
 // FindNotes 查询 Note 列表
-func (r *noteRepositoryImpl) FindNotes(page, size int, userID uint64) ([]*entity.Note, int64, error) {
+func (r *noteRepositoryImpl) FindNotes(page, size int, userID uint64, keyword string) ([]*entity.Note, int64, error) {
 	var notes []*entity.Note
 	var total int64
-	err := r.db.
-		Where("user_id", userID).
-		Model(&entity.Note{}).
-		Count(&total).
-		Error
+
+	query := r.db.Model(&entity.Note{}).Where("user_id = ?", userID)
+
+	if keyword != "" {
+		query = query.Where("content LIKE ?", "%"+keyword+"%")
+	}
+
+	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	err = r.db.
-		Where("user_id", userID).
+	err = query.
 		Offset((page - 1) * size).
 		Limit(size).
-		Order("created_at desc").
+		Order("pinned_at desc, created_at desc").
 		Find(&notes).
 		Error
 	if err != nil {
 		return nil, 0, err
 	}
 	return notes, total, nil
+}
+
+// UpdatePinned 更新置顶状态
+func (r *noteRepositoryImpl) UpdatePinned(id, userID uint64, note *entity.Note) error {
+	return r.db.
+		Where("user_id = ?", userID).
+		Model(&entity.Note{ID: id}).
+		Select("PinnedAt"). // 强制更新 PinnedAt 字段，即使是 NULL
+		Updates(note).
+		Error
 }
 
 // Update 更新 Note

@@ -14,6 +14,8 @@ type Note struct {
 
 	Files []File `gorm:"polymorphic:Owner;polymorphicValue:notes" json:"files"`
 
+	PinnedAt *carbon.DateTime `gorm:"type:datetime;index" json:"pinned_at"` // 置顶时间，为空表示未置顶
+
 	CreatedAt *carbon.DateTime `gorm:"type:datetime" json:"created_at"`
 	UpdatedAt *carbon.DateTime `gorm:"type:datetime" json:"updated_at"`
 	DeletedAt gorm.DeletedAt   `gorm:"index" json:"-"`

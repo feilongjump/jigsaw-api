@@ -11,7 +11,10 @@ type NoteRepository interface {
 	GetNote(id, userID uint64) (*entity.Note, error)
 
 	// FindNotes 查询列表
-	FindNotes(page, size int, userID uint64) ([]*entity.Note, int64, error)
+	FindNotes(page, size int, userID uint64, keyword string) ([]*entity.Note, int64, error)
+
+	// UpdatePinned 更新置顶状态
+	UpdatePinned(id, userID uint64, note *entity.Note) error
 
 	// Update 更新
 	Update(id, userID uint64, note *entity.Note) error

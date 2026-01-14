@@ -1,6 +1,7 @@
 package note
 
 import (
+	"github.com/dromara/carbon/v2"
 	"github.com/feilongjump/jigsaw-api/application/note/dto"
 	"github.com/feilongjump/jigsaw-api/domain/entity"
 	"github.com/feilongjump/jigsaw-api/domain/repo"
@@ -48,6 +49,7 @@ func (s *Service) Create(req *dto.CreateNoteRequest, userID uint64) (*dto.NoteRe
 	return &dto.NoteResponse{
 		ID:        note.ID,
 		Content:   note.Content,
+		PinnedAt:  note.PinnedAt,
 		CreatedAt: note.CreatedAt,
 		UpdatedAt: note.UpdatedAt,
 	}, nil
@@ -63,14 +65,15 @@ func (s *Service) GetNote(id, userID uint64) (*dto.NoteResponse, error) {
 	return &dto.NoteResponse{
 		ID:        note.ID,
 		Content:   note.Content,
+		PinnedAt:  note.PinnedAt,
 		CreatedAt: note.CreatedAt,
 		UpdatedAt: note.UpdatedAt,
 	}, nil
 }
 
-func (s *Service) FindNotes(page, size int, userID uint64) (*dto.NotesResponse, error) {
+func (s *Service) FindNotes(page, size int, userID uint64, keyword string) (*dto.NotesResponse, error) {
 	// 调用仓储查询 Note
-	notes, total, err := s.noteRepo.FindNotes(page, size, userID)
+	notes, total, err := s.noteRepo.FindNotes(page, size, userID, keyword)
 	if err != nil {
 		return nil, err
 	}
@@ -80,6 +83,7 @@ func (s *Service) FindNotes(page, size int, userID uint64) (*dto.NotesResponse, 
 		data = append(data, &dto.NoteResponse{
 			ID:        note.ID,
 			Content:   note.Content,
+			PinnedAt:  note.PinnedAt,
 			CreatedAt: note.CreatedAt,
 			UpdatedAt: note.UpdatedAt,
 		})
@@ -91,6 +95,23 @@ func (s *Service) FindNotes(page, size int, userID uint64) (*dto.NotesResponse, 
 		Page:  page,
 		Size:  size,
 	}, nil
+}
+
+// SetPinned 设置置顶状态
+func (s *Service) SetPinned(id, userID uint64, pinned bool) error {
+	// 检查 Note 是否存在且属于该用户
+	if _, err := s.noteRepo.GetNote(id, userID); err != nil {
+		return err
+	}
+
+	var pinnedAt *carbon.DateTime
+	if pinned {
+		pinnedAt = carbon.NewDateTime(carbon.Now())
+	}
+
+	return s.noteRepo.UpdatePinned(id, userID, &entity.Note{
+		PinnedAt: pinnedAt,
+	})
 }
 
 func (s *Service) Update(id, userID uint64, req *dto.UpdateNoteRequest) error {

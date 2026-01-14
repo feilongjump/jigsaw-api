@@ -61,13 +61,41 @@ func (n *NoteHandler) Index(c *gin.Context) {
 	}
 
 	userID := c.GetUint64("user_id")
-	notesResp, err := n.noteService.FindNotes(req.Page, req.Size, userID)
+	notesResp, err := n.noteService.FindNotes(req.Page, req.Size, userID, req.Keyword)
 	if err != nil {
 		response.Fail(c, err_code.NoteGetFailed)
 		return
 	}
 
 	response.Success(c, notesResp)
+}
+
+// SetPinned 设置置顶状态
+func (n *NoteHandler) SetPinned(c *gin.Context) {
+	var reqURI dto.NoteURIRequest
+	if !gin_util.BindURI(c, &reqURI) {
+		return
+	}
+
+	var req dto.PinNoteRequest
+	if !gin_util.BindJSON(c, &req) {
+		return
+	}
+
+	userID := c.GetUint64("user_id")
+	if err := n.noteService.SetPinned(reqURI.ID, userID, req.Pinned); err != nil {
+		response.Fail(c, err)
+		return
+	}
+
+	// 返回更新后的 Note
+	updatedNote, err := n.noteService.GetNote(reqURI.ID, userID)
+	if err != nil {
+		response.Fail(c, err)
+		return
+	}
+
+	response.Success(c, updatedNote)
 }
 
 // Update 更新 Note
