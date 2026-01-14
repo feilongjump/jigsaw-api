@@ -10,6 +10,7 @@ services:
     init: true
     ports:
       - '${MYSQL_PORT:-3306}:3306'
+    command: --log-timestamps=SYSTEM
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
