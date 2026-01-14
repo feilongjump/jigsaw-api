@@ -1,0 +1,19 @@
+# 版本控制文件
+.git
+.gitignore
+
+# 本地环境配置
+.env
+.jigsaw.toml
+
+# 临时文件和日志
+tmp/
+logs/
+*.log
+
+# 静态资源（如果不需要构建到镜像中，比如使用挂载卷）
+static/
+
+# 编译产物
+jigsaw
+jigsaw.exe
