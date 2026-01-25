@@ -24,6 +24,8 @@ func Init() {
 		trans, _ = uni.GetTranslator("zh")
 		zh_translations.RegisterDefaultTranslations(v, trans)
 
+		registerCustomValidations(v)
+
 		// 注册自定义 TagNameFunc，优先使用 label 标签作为字段名
 		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
 			name := fld.Tag.Get("label")
@@ -108,4 +110,9 @@ func Translate(err error, obj any) map[string][]string {
 	}
 
 	return result
+}
+
+// registerCustomValidations 注册自定义验证器
+func registerCustomValidations(v *validator.Validate) {
+	registerWalletTypeValidation(v)
 }

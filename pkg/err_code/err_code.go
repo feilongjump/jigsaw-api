@@ -40,6 +40,28 @@ var (
 	FileDeleteForbidden = ErrCode{Code: 3002, Msg: "无权删除该文件"}
 	FileDeleteFailed    = ErrCode{Code: 3003, Msg: "删除文件失败"}
 	FileNotFound        = ErrCode{Code: 3004, Msg: "文件不存在"}
+
+	// Ledger Category 模块 3500 - 3599
+	LedgerCategoryCreateFailed = ErrCode{Code: 3501, Msg: "创建分类失败"}
+	LedgerCategoryUpdateFailed = ErrCode{Code: 3502, Msg: "更新分类失败"}
+	LedgerCategoryDeleteFailed = ErrCode{Code: 3503, Msg: "删除分类失败"}
+	LedgerCategoryNotFound     = ErrCode{Code: 3504, Msg: "分类不存在"}
+	LedgerCategoryGetFailed    = ErrCode{Code: 3505, Msg: "获取分类失败"}
+
+	// User Wallet 模块 4000 - 4499
+	UserWalletCreateFailed    = ErrCode{Code: 4001, Msg: "创建账户失败"}
+	UserWalletUpdateFailed    = ErrCode{Code: 4002, Msg: "更新账户失败"}
+	UserWalletDeleteFailed    = ErrCode{Code: 4003, Msg: "删除账户失败"}
+	UserWalletNotFound        = ErrCode{Code: 4004, Msg: "账户不存在"}
+	UserWalletGetFailed       = ErrCode{Code: 4005, Msg: "获取账户失败"}
+	UserWalletDeleteForbidden = ErrCode{Code: 4006, Msg: "账户存在账单，无法删除，请改用归档。"}
+
+	// Ledger Record 模块 4500 - 4999
+	LedgerRecordCreateFailed = ErrCode{Code: 4501, Msg: "记账失败"}
+	LedgerRecordUpdateFailed = ErrCode{Code: 4502, Msg: "更新记录失败"}
+	LedgerRecordDeleteFailed = ErrCode{Code: 4503, Msg: "删除记录失败"}
+	LedgerRecordNotFound     = ErrCode{Code: 4504, Msg: "记录不存在"}
+	LedgerRecordGetFailed    = ErrCode{Code: 4505, Msg: "获取记录失败"}
 )
 
 // 实现 error 接口
