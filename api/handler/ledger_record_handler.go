@@ -24,7 +24,7 @@ func (h *LedgerRecordHandler) Create(c *gin.Context) {
 	}
 
 	userID := c.GetUint64("user_id")
-	created, err := h.service.Create(userID, req)
+	created, err := h.service.Create(c.Request.Context(), userID, req)
 	if err != nil {
 		response.Fail(c, err_code.LedgerRecordCreateFailed)
 		return
@@ -45,7 +45,7 @@ func (h *LedgerRecordHandler) Update(c *gin.Context) {
 	}
 
 	userID := c.GetUint64("user_id")
-	updated, err := h.service.Update(userID, reqURI.ID, req)
+	updated, err := h.service.Update(c.Request.Context(), userID, reqURI.ID, req)
 	if err != nil {
 		response.Fail(c, err_code.LedgerRecordUpdateFailed)
 		return
@@ -61,7 +61,7 @@ func (h *LedgerRecordHandler) Delete(c *gin.Context) {
 	}
 
 	userID := c.GetUint64("user_id")
-	if err := h.service.Delete(userID, req.ID); err != nil {
+	if err := h.service.Delete(c.Request.Context(), userID, req.ID); err != nil {
 		response.Fail(c, err_code.LedgerRecordDeleteFailed)
 		return
 	}

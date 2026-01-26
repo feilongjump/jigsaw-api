@@ -1,6 +1,7 @@
 package repo_impl
 
 import (
+	"context"
 	"errors"
 
 	"github.com/feilongjump/jigsaw-api/domain/entity"
@@ -18,12 +19,12 @@ func NewLedgerRecordRepo() repo.LedgerRecordRepo {
 	return &ledgerRecordRepoImpl{db: db.Get()}
 }
 
-func (r *ledgerRecordRepoImpl) Create(record *entity.LedgerRecord) error {
-	return r.db.Create(record).Error
+func (r *ledgerRecordRepoImpl) Create(ctx context.Context, record *entity.LedgerRecord) error {
+	return db.GetDB(ctx, r.db).Create(record).Error
 }
 
-func (r *ledgerRecordRepoImpl) Update(id, userID uint64, record *entity.LedgerRecord) error {
-	return r.db.
+func (r *ledgerRecordRepoImpl) Update(ctx context.Context, id, userID uint64, record *entity.LedgerRecord) error {
+	return db.GetDB(ctx, r.db).
 		Where("user_id = ?", userID).
 		Model(&entity.LedgerRecord{ID: id}).
 		Select("Type", "Amount", "SourceWalletID", "TargetWalletID", "CategoryID", "OccurredAt", "Remark", "Images").
@@ -31,8 +32,8 @@ func (r *ledgerRecordRepoImpl) Update(id, userID uint64, record *entity.LedgerRe
 		Error
 }
 
-func (r *ledgerRecordRepoImpl) Delete(id, userID uint64) (error, int64) {
-	result := r.db.
+func (r *ledgerRecordRepoImpl) Delete(ctx context.Context, id, userID uint64) (error, int64) {
+	result := db.GetDB(ctx, r.db).
 		Where("user_id = ?", userID).
 		Delete(&entity.LedgerRecord{ID: id})
 

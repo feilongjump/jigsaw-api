@@ -4,6 +4,7 @@ import (
 	"github.com/feilongjump/jigsaw-api/api/handler"
 	"github.com/feilongjump/jigsaw-api/api/middleware"
 	"github.com/feilongjump/jigsaw-api/application/ledger_record"
+	"github.com/feilongjump/jigsaw-api/infrastructure/db"
 	"github.com/feilongjump/jigsaw-api/infrastructure/repo_impl"
 	"github.com/gin-gonic/gin"
 )
@@ -11,7 +12,8 @@ import (
 func RegisterLedgerRecordRouter(r *gin.Engine) {
 	recordRepo := repo_impl.NewLedgerRecordRepo()
 	walletRepo := repo_impl.NewUserWalletRepo()
-	service := ledger_record.NewService(recordRepo, walletRepo)
+	tm := db.NewTransactionManager()
+	service := ledger_record.NewService(recordRepo, walletRepo, tm)
 	h := handler.NewLedgerRecordHandler(service)
 
 	g := r.Group("/ledger/records")

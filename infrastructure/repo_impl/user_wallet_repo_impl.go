@@ -1,6 +1,7 @@
 package repo_impl
 
 import (
+	"context"
 	"errors"
 
 	"github.com/feilongjump/jigsaw-api/domain/entity"
@@ -18,19 +19,19 @@ func NewUserWalletRepo() repo.UserWalletRepo {
 	return &userWalletRepoImpl{db: db.Get()}
 }
 
-func (r *userWalletRepoImpl) Create(wallet *entity.UserWallet) error {
-	return r.db.Create(wallet).Error
+func (r *userWalletRepoImpl) Create(ctx context.Context, wallet *entity.UserWallet) error {
+	return db.GetDB(ctx, r.db).Create(wallet).Error
 }
 
-func (r *userWalletRepoImpl) Update(id, userID uint64, wallet *entity.UserWallet) error {
-	return r.db.
+func (r *userWalletRepoImpl) Update(ctx context.Context, id, userID uint64, wallet *entity.UserWallet) error {
+	return db.GetDB(ctx, r.db).
 		Where("user_id = ?", userID).
 		Model(&entity.UserWallet{ID: id}).
 		Updates(wallet).Error
 }
 
-func (r *userWalletRepoImpl) Delete(id, userID uint64) (error, int64) {
-	result := r.db.
+func (r *userWalletRepoImpl) Delete(ctx context.Context, id, userID uint64) (error, int64) {
+	result := db.GetDB(ctx, r.db).
 		Where("user_id = ?", userID).
 		Delete(&entity.UserWallet{ID: id})
 
@@ -61,8 +62,8 @@ func (r *userWalletRepoImpl) FindUserWallets(userID uint64) ([]*entity.UserWalle
 	return wallets, err
 }
 
-func (r *userWalletRepoImpl) UpdateBalance(id, userID uint64, amount float64) error {
-	result := r.db.Model(&entity.UserWallet{}).
+func (r *userWalletRepoImpl) UpdateBalance(ctx context.Context, id, userID uint64, amount float64) error {
+	result := db.GetDB(ctx, r.db).Model(&entity.UserWallet{}).
 		Where("id = ? AND user_id = ?", id, userID).
 		UpdateColumn("balance", gorm.Expr("balance + ?", amount))
 
@@ -75,8 +76,8 @@ func (r *userWalletRepoImpl) UpdateBalance(id, userID uint64, amount float64) er
 	return nil
 }
 
-func (r *userWalletRepoImpl) UpdateLiability(id, userID uint64, amount float64) error {
-	result := r.db.Model(&entity.UserWallet{}).
+func (r *userWalletRepoImpl) UpdateLiability(ctx context.Context, id, userID uint64, amount float64) error {
+	result := db.GetDB(ctx, r.db).Model(&entity.UserWallet{}).
 		Where("id = ? AND user_id = ?", id, userID).
 		UpdateColumn("liability", gorm.Expr("liability + ?", amount))
 

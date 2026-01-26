@@ -55,6 +55,7 @@ var (
 	UserWalletNotFound        = ErrCode{Code: 4004, Msg: "账户不存在"}
 	UserWalletGetFailed       = ErrCode{Code: 4005, Msg: "获取账户失败"}
 	UserWalletDeleteForbidden = ErrCode{Code: 4006, Msg: "账户存在账单，无法删除，请改用归档。"}
+	UserWalletConfigInvalid   = ErrCode{Code: 4007, Msg: "账户扩展配置无效"}
 
 	// Ledger Record 模块 4500 - 4999
 	LedgerRecordCreateFailed = ErrCode{Code: 4501, Msg: "记账失败"}

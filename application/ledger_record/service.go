@@ -1,6 +1,8 @@
 package ledger_record
 
 import (
+	"context"
+
 	"github.com/feilongjump/jigsaw-api/application/ledger_record/dto"
 	"github.com/feilongjump/jigsaw-api/domain/entity"
 	"github.com/feilongjump/jigsaw-api/domain/repo"
@@ -10,16 +12,18 @@ import (
 type Service struct {
 	repo       repo.LedgerRecordRepo
 	walletRepo repo.UserWalletRepo
+	tm         repo.TransactionManager
 }
 
-func NewService(repo repo.LedgerRecordRepo, walletRepo repo.UserWalletRepo) *Service {
+func NewService(repo repo.LedgerRecordRepo, walletRepo repo.UserWalletRepo, tm repo.TransactionManager) *Service {
 	return &Service{
 		repo:       repo,
 		walletRepo: walletRepo,
+		tm:         tm,
 	}
 }
 
-func (s *Service) Create(userID uint64, req dto.CreateLedgerRecordReq) (*dto.LedgerRecordResp, error) {
+func (s *Service) Create(ctx context.Context, userID uint64, req dto.CreateLedgerRecordReq) (*dto.LedgerRecordResp, error) {
 	record := &entity.LedgerRecord{
 		UserID:         userID,
 		Type:           req.Type,
@@ -32,71 +36,89 @@ func (s *Service) Create(userID uint64, req dto.CreateLedgerRecordReq) (*dto.Led
 		Images:         req.Images,
 	}
 
-	// 1. 创建记录
-	if err := s.repo.Create(record); err != nil {
-		return nil, err
-	}
+	err := s.tm.Transaction(ctx, func(ctx context.Context) error {
+		// 1. 创建记录
+		if err := s.repo.Create(ctx, record); err != nil {
+			return err
+		}
 
-	// 2. 更新账户余额 (无事务)
-	switch req.Type {
-	case 1: // 支出
-		if req.SourceWalletID > 0 {
-			if err := s.handleOutflow(req.SourceWalletID, req.Amount, userID); err != nil {
-				return nil, err
+		// 2. 更新账户余额
+		switch req.Type {
+		case 1: // 支出
+			if req.SourceWalletID > 0 {
+				if err := s.handleOutflow(ctx, req.SourceWalletID, req.Amount, userID); err != nil {
+					return err
+				}
+			}
+		case 2: // 收入
+			if req.TargetWalletID > 0 {
+				if err := s.handleInflow(ctx, req.TargetWalletID, req.Amount, userID); err != nil {
+					return err
+				}
+			}
+		case 3: // 转账
+			if req.SourceWalletID > 0 {
+				if err := s.handleOutflow(ctx, req.SourceWalletID, req.Amount, userID); err != nil {
+					return err
+				}
+			}
+			if req.TargetWalletID > 0 {
+				if err := s.handleInflow(ctx, req.TargetWalletID, req.Amount, userID); err != nil {
+					return err
+				}
 			}
 		}
-	case 2: // 收入
-		if req.TargetWalletID > 0 {
-			if err := s.handleInflow(req.TargetWalletID, req.Amount, userID); err != nil {
-				return nil, err
-			}
-		}
-	case 3: // 转账
-		if req.SourceWalletID > 0 {
-			if err := s.handleOutflow(req.SourceWalletID, req.Amount, userID); err != nil {
-				return nil, err
-			}
-		}
-		if req.TargetWalletID > 0 {
-			if err := s.handleInflow(req.TargetWalletID, req.Amount, userID); err != nil {
-				return nil, err
-			}
-		}
-	}
-	return toLedgerRecordResp(record), nil
-}
+		return nil
+	})
 
-func (s *Service) Update(userID uint64, id uint64, req dto.UpdateLedgerRecordReq) (*dto.LedgerRecordResp, error) {
-	record, err := s.repo.GetLedgerRecord(id, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	updated := &entity.LedgerRecord{
-		UserID:         userID,
-		Type:           req.Type,
-		Amount:         req.Amount,
-		SourceWalletID: req.SourceWalletID,
-		TargetWalletID: req.TargetWalletID,
-		CategoryID:     req.CategoryID,
-		OccurredAt:     req.OccurredAt,
-		Remark:         req.Remark,
-		Images:         req.Images,
-	}
+	return toLedgerRecordResp(record), nil
+}
 
-	if err := s.repo.Update(id, userID, updated); err != nil {
-		return nil, err
-	}
+func (s *Service) Update(ctx context.Context, userID uint64, id uint64, req dto.UpdateLedgerRecordReq) (*dto.LedgerRecordResp, error) {
+	var updatedRecord *entity.LedgerRecord
 
-	if err := s.rollbackLedgerRecord(record, userID); err != nil {
-		return nil, err
-	}
+	err := s.tm.Transaction(ctx, func(ctx context.Context) error {
+		record, err := s.repo.GetLedgerRecord(id, userID)
+		if err != nil {
+			return err
+		}
 
-	if err := s.applyLedgerRecord(updated, userID); err != nil {
-		return nil, err
-	}
+		updated := &entity.LedgerRecord{
+			UserID:         userID,
+			Type:           req.Type,
+			Amount:         req.Amount,
+			SourceWalletID: req.SourceWalletID,
+			TargetWalletID: req.TargetWalletID,
+			CategoryID:     req.CategoryID,
+			OccurredAt:     req.OccurredAt,
+			Remark:         req.Remark,
+			Images:         req.Images,
+		}
 
-	updatedRecord, err := s.repo.GetLedgerRecord(id, userID)
+		if err := s.repo.Update(ctx, id, userID, updated); err != nil {
+			return err
+		}
+
+		if err := s.rollbackLedgerRecord(ctx, record, userID); err != nil {
+			return err
+		}
+
+		if err := s.applyLedgerRecord(ctx, updated, userID); err != nil {
+			return err
+		}
+
+		// Re-fetch within transaction to ensure we get the latest state
+		updatedRecord, err = s.repo.GetLedgerRecord(id, userID)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -104,46 +126,55 @@ func (s *Service) Update(userID uint64, id uint64, req dto.UpdateLedgerRecordReq
 	return toLedgerRecordResp(updatedRecord), nil
 }
 
-func (s *Service) Delete(userID uint64, id uint64) error {
-	// 1. 查询记录
-	record, err := s.repo.GetLedgerRecord(id, userID)
-	if err != nil {
-		return err_code.LedgerRecordDeleteFailed
-	}
+func (s *Service) Delete(ctx context.Context, userID uint64, id uint64) error {
+	return s.tm.Transaction(ctx, func(ctx context.Context) error {
+		// 1. 查询记录
+		record, err := s.repo.GetLedgerRecord(id, userID)
+		if err != nil {
+			return err_code.LedgerRecordDeleteFailed
+		}
 
-	// 2. 删除记录
-	err, row := s.repo.Delete(id, userID)
-	if err != nil {
-		return err
-	}
-	if row == 0 {
-		return err_code.LedgerRecordDeleteFailed
-	}
+		// 2. 删除记录
+		err, row := s.repo.Delete(ctx, id, userID)
+		if err != nil {
+			return err
+		}
+		if row == 0 {
+			return err_code.LedgerRecordDeleteFailed
+		}
 
-	// 3. 回滚余额 (逻辑取反)
-	// 风险：如果回滚失败，记录已删除但余额未恢复。
+		// 3. 回滚余额
+		if err := s.rollbackLedgerRecord(ctx, record, userID); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s *Service) rollbackLedgerRecord(ctx context.Context, record *entity.LedgerRecord, userID uint64) error {
 	amount := record.Amount
 	switch record.Type {
-	case 1: // 支出回滚 -> 相当于收入
+	case 1:
 		if record.SourceWalletID > 0 {
-			if err := s.handleInflow(record.SourceWalletID, amount, userID); err != nil {
+			if err := s.handleInflow(ctx, record.SourceWalletID, amount, userID); err != nil {
 				return err
 			}
 		}
-	case 2: // 收入回滚 -> 相当于支出
+	case 2:
 		if record.TargetWalletID > 0 {
-			if err := s.handleOutflow(record.TargetWalletID, amount, userID); err != nil {
+			if err := s.handleOutflow(ctx, record.TargetWalletID, amount, userID); err != nil {
 				return err
 			}
 		}
-	case 3: // 转账回滚
+	case 3:
 		if record.SourceWalletID > 0 {
-			if err := s.handleInflow(record.SourceWalletID, amount, userID); err != nil {
+			if err := s.handleInflow(ctx, record.SourceWalletID, amount, userID); err != nil {
 				return err
 			}
 		}
 		if record.TargetWalletID > 0 {
-			if err := s.handleOutflow(record.TargetWalletID, amount, userID); err != nil {
+			if err := s.handleOutflow(ctx, record.TargetWalletID, amount, userID); err != nil {
 				return err
 			}
 		}
@@ -151,58 +182,28 @@ func (s *Service) Delete(userID uint64, id uint64) error {
 	return nil
 }
 
-func (s *Service) rollbackLedgerRecord(record *entity.LedgerRecord, userID uint64) error {
-	amount := record.Amount
+func (s *Service) applyLedgerRecord(ctx context.Context, record *entity.LedgerRecord, userID uint64) error {
 	switch record.Type {
 	case 1:
 		if record.SourceWalletID > 0 {
-			if err := s.handleInflow(record.SourceWalletID, amount, userID); err != nil {
+			if err := s.handleOutflow(ctx, record.SourceWalletID, record.Amount, userID); err != nil {
 				return err
 			}
 		}
 	case 2:
 		if record.TargetWalletID > 0 {
-			if err := s.handleOutflow(record.TargetWalletID, amount, userID); err != nil {
+			if err := s.handleInflow(ctx, record.TargetWalletID, record.Amount, userID); err != nil {
 				return err
 			}
 		}
 	case 3:
 		if record.SourceWalletID > 0 {
-			if err := s.handleInflow(record.SourceWalletID, amount, userID); err != nil {
+			if err := s.handleOutflow(ctx, record.SourceWalletID, record.Amount, userID); err != nil {
 				return err
 			}
 		}
 		if record.TargetWalletID > 0 {
-			if err := s.handleOutflow(record.TargetWalletID, amount, userID); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (s *Service) applyLedgerRecord(record *entity.LedgerRecord, userID uint64) error {
-	switch record.Type {
-	case 1:
-		if record.SourceWalletID > 0 {
-			if err := s.handleOutflow(record.SourceWalletID, record.Amount, userID); err != nil {
-				return err
-			}
-		}
-	case 2:
-		if record.TargetWalletID > 0 {
-			if err := s.handleInflow(record.TargetWalletID, record.Amount, userID); err != nil {
-				return err
-			}
-		}
-	case 3:
-		if record.SourceWalletID > 0 {
-			if err := s.handleOutflow(record.SourceWalletID, record.Amount, userID); err != nil {
-				return err
-			}
-		}
-		if record.TargetWalletID > 0 {
-			if err := s.handleInflow(record.TargetWalletID, record.Amount, userID); err != nil {
+			if err := s.handleInflow(ctx, record.TargetWalletID, record.Amount, userID); err != nil {
 				return err
 			}
 		}
@@ -211,7 +212,7 @@ func (s *Service) applyLedgerRecord(record *entity.LedgerRecord, userID uint64) 
 }
 
 // handleOutflow 资金流出
-func (s *Service) handleOutflow(walletID uint64, amount float64, userID uint64) error {
+func (s *Service) handleOutflow(ctx context.Context, walletID uint64, amount float64, userID uint64) error {
 	wallet, err := s.walletRepo.GetUserWallet(walletID, userID)
 	if err != nil {
 		return err
@@ -219,13 +220,13 @@ func (s *Service) handleOutflow(walletID uint64, amount float64, userID uint64) 
 
 	// Type 5: 信用卡, Type 8: 两融账户
 	if wallet.Type == entity.UserWalletTypeCreditCard || wallet.Type == entity.UserWalletTypeMargin {
-		return s.walletRepo.UpdateLiability(walletID, userID, amount) // 负债增加
+		return s.walletRepo.UpdateLiability(ctx, walletID, userID, amount) // 负债增加
 	}
-	return s.walletRepo.UpdateBalance(walletID, userID, -amount) // 余额减少
+	return s.walletRepo.UpdateBalance(ctx, walletID, userID, -amount) // 余额减少
 }
 
 // handleInflow 资金流入
-func (s *Service) handleInflow(walletID uint64, amount float64, userID uint64) error {
+func (s *Service) handleInflow(ctx context.Context, walletID uint64, amount float64, userID uint64) error {
 	wallet, err := s.walletRepo.GetUserWallet(walletID, userID)
 	if err != nil {
 		return err
@@ -233,9 +234,9 @@ func (s *Service) handleInflow(walletID uint64, amount float64, userID uint64) e
 
 	// Type 5: 信用卡, Type 8: 两融账户
 	if wallet.Type == entity.UserWalletTypeCreditCard || wallet.Type == entity.UserWalletTypeMargin {
-		return s.walletRepo.UpdateLiability(walletID, userID, -amount) // 负债减少
+		return s.walletRepo.UpdateLiability(ctx, walletID, userID, -amount) // 负债减少
 	}
-	return s.walletRepo.UpdateBalance(walletID, userID, amount) // 余额增加
+	return s.walletRepo.UpdateBalance(ctx, walletID, userID, amount) // 余额增加
 }
 
 func (s *Service) FindLedgerRecords(userID uint64, req dto.ListLedgerRecordReq) (*dto.LedgerRecordListResponse, error) {

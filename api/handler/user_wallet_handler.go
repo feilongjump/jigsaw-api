@@ -24,7 +24,7 @@ func (h *UserWalletHandler) Create(c *gin.Context) {
 	}
 
 	userID := c.GetUint64("user_id")
-	createdWallet, err := h.service.Create(userID, req)
+	createdWallet, err := h.service.Create(c.Request.Context(), userID, req)
 	if err != nil {
 		response.Fail(c, err_code.UserWalletCreateFailed)
 		return
@@ -51,7 +51,7 @@ func (h *UserWalletHandler) Delete(c *gin.Context) {
 	}
 
 	userID := c.GetUint64("user_id")
-	if err := h.service.Delete(userID, req.ID); err != nil {
+	if err := h.service.Delete(c.Request.Context(), userID, req.ID); err != nil {
 		response.Fail(c, err)
 		return
 	}
@@ -71,7 +71,7 @@ func (h *UserWalletHandler) Update(c *gin.Context) {
 	}
 
 	userID := c.GetUint64("user_id")
-	if err := h.service.Update(userID, reqURI.ID, reqBody); err != nil {
+	if err := h.service.Update(c.Request.Context(), userID, reqURI.ID, reqBody); err != nil {
 		response.Fail(c, err_code.UserWalletUpdateFailed)
 		return
 	}
