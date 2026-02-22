@@ -1,0 +1,25 @@
+# Binaries
+/bin/
+/dist/
+main
+main.exe
+tmp/
+
+# Vendor
+vendor/
+
+# Environment variables
+.env
+
+# IDEs
+.idea/
+.vscode/
+.trae/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+coverage.txt

@@ -1,0 +1,22 @@
+[server]
+port = "8080"
+mode = "debug"
+
+[database]
+host = "localhost"
+port = "5432"
+user = "postgres"
+password = "password"
+dbname = "jigsaw"
+sslmode = "disable"
+
+[jwt]
+secret = "jigsaw-secret-key"
+expire = 72 # hours
+
+[log]
+level = "debug"
+filename = "app.log"
+max_size = 10
+max_age = 30
+max_backups = 5
