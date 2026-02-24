@@ -24,6 +24,8 @@ func InitRouter() *gin.Engine {
 	authHandler := handler.NewAuthHandler()
 	userHandler := handler.NewUserHandler()
 	fileHandler := handler.NewFileHandler()
+	postHandler := handler.NewPostHandler()
+	tagHandler := handler.NewTagHandler()
 
 	{
 		auth := r.Group("/auth")
@@ -48,6 +50,25 @@ func InitRouter() *gin.Engine {
 		files.Use(middleware.JWTAuth())
 		{
 			files.POST("/upload", fileHandler.Upload)
+		}
+
+		posts := r.Group("/posts")
+		posts.Use(middleware.JWTAuth())
+		{
+			posts.GET("", postHandler.ListPosts)
+			posts.POST("", postHandler.CreatePost)
+			posts.GET("/:id", postHandler.GetPost)
+			posts.PUT("/:id", postHandler.UpdatePost)
+			posts.DELETE("/:id", postHandler.DeletePost)
+		}
+
+		tags := r.Group("/tags")
+		tags.Use(middleware.JWTAuth())
+		{
+			tags.GET("", tagHandler.ListTags)
+			tags.POST("", tagHandler.CreateTag)
+			tags.PUT("/:id", tagHandler.UpdateTag)
+			tags.DELETE("/:id", tagHandler.DeleteTag)
 		}
 	}
 

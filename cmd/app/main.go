@@ -57,7 +57,7 @@ func main() {
 	database.InitDB()
 
 	// Auto Migrate
-	if err := database.DB.AutoMigrate(&model.User{}); err != nil {
+	if err := database.DB.AutoMigrate(&model.User{}, &model.Tag{}, &model.Tagging{}, &model.Post{}); err != nil {
 		log.Fatalf("Database migration failed: %v", err)
 	}
 
