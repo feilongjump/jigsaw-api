@@ -71,7 +71,18 @@ func (s *UserService) UpdateUser(userID uint, updates map[string]interface{}) er
 	return s.userRepo.Update(user)
 }
 
-// DeleteUser 删除用户
-func (s *UserService) DeleteUser(id uint) error {
-	return s.userRepo.Delete(id)
+func (s *UserService) ChangePassword(userID uint, oldPassword, newPassword string) error {
+	user, err := s.userRepo.GetUser(userID)
+	if err != nil {
+		return errors.New("用户不存在")
+	}
+	if !utils.CheckPasswordHash(oldPassword, user.Password) {
+		return errors.New("旧密码不正确")
+	}
+	hashedPassword, err := utils.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	user.Password = hashedPassword
+	return s.userRepo.Update(user)
 }

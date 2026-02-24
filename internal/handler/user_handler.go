@@ -194,33 +194,6 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	response.Success(c, nil)
 }
 
-// DeleteUser godoc
-// @Summary 删除用户
-// @Description 删除用户
-// @Tags User
-// @Accept json
-// @Produce json
-// @Param id path int true "用户ID"
-// @Success 200 {object} response.Response
-// @Failure 400 {object} response.Response
-// @Router /users/{id} [delete]
-// @Security ApiKeyAuth
-func (h *UserHandler) DeleteUser(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.Error(c, http.StatusBadRequest, "用户ID无效")
-		return
-	}
-
-	if err := h.userService.DeleteUser(uint(id)); err != nil {
-		response.Error(c, http.StatusInternalServerError, "删除用户失败")
-		return
-	}
-
-	response.Success(c, nil)
-}
-
 // UpdateUserInfo godoc
 // @Summary 更新个人信息
 // @Description 更新当前登录用户的信息 (头像, 邮箱等)
@@ -255,6 +228,40 @@ func (h *UserHandler) UpdateUserInfo(c *gin.Context) {
 	}
 
 	if err := h.userService.UpdateUser(userID.(uint), updates); err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, nil)
+}
+
+// ChangePassword godoc
+// @Summary 修改密码
+// @Description 登录后修改密码
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body request.ChangePasswordRequest true "修改密码信息"
+// @Success 200 {object} response.Response "{"code": 200, "msg": "成功", "data": null}"
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 422 {object} response.Response "{"code": 422, "msg": "参数校验失败", "data": null, "errors": {...}}"
+// @Router /users/password [put]
+// @Security ApiKeyAuth
+func (h *UserHandler) ChangePassword(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "用户身份信息不存在")
+		return
+	}
+
+	var req request.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ValidationError(c, validator.Translate(err, &req))
+		return
+	}
+
+	if err := h.userService.ChangePassword(userID.(uint), req.OldPassword, req.NewPassword); err != nil {
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}

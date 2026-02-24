@@ -42,8 +42,8 @@ func InitRouter() *gin.Engine {
 			users.POST("", userHandler.CreateUser)
 			users.GET("/:id", userHandler.GetUser)
 			users.PUT("/:id", userHandler.UpdateUser)
-			users.DELETE("/:id", userHandler.DeleteUser)
 			users.PUT("/info", userHandler.UpdateUserInfo)
+			users.PUT("/password", userHandler.ChangePassword)
 		}
 
 		files := r.Group("/files")
